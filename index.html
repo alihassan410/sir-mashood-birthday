@@ -11,235 +11,32 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Background Canvas for Interactive Confetti -->
-    <canvas id="confetti-canvas"></canvas>
+    <!-- Single high-performance Canvas for stars, balloons, petals, snow, and confetti -->
+    <canvas id="effects-canvas"></canvas>
 
-    <!-- Background Particle Canvas for Golden Ambient Dust -->
-    <canvas id="ambient-canvas"></canvas>
-
-    <!-- SECTION 1: Elegant Invitation Gate -->
-    <div id="intro-screen" class="screen-overlay active">
-        <div class="intro-container">
-            <div class="envelope-wrapper">
-                <div class="envelope">
-                    <div class="envelope-flap"></div>
-                    <div class="envelope-body"></div>
-                    <!-- Label on the front of the envelope -->
-                    <div class="envelope-label">
-                        <h2 class="label-title">To Our Respected Senior</h2>
-                        <h1 class="label-name">Sir Mashood ur Rehman</h1>
-                        <p class="label-from">From: Ali Hassan & Abdul wahab</p>
-                    </div>
-                    <!-- Letter inside -->
-                    <div class="letter">
-                        <div class="letter-stamp">✨</div>
-                        <h2 class="letter-title">A Special Tribute</h2>
-                        <p class="letter-message">Wishing you a day as inspiring as your guidance.</p>
-                        <p class="letter-hint">Click to unwrap the celebration</p>
-                    </div>
-                </div>
+    <!-- SECTION 1: Cinematic Typing Intro -->
+    <div id="typing-screen" class="screen-overlay active">
+        <div class="typing-container">
+            <div id="typing-box">
+                <span id="typing-text"></span><span class="typing-cursor">|</span>
             </div>
-            <button id="unwrap-btn" class="btn btn-gold ripple">Unwrap Celebration</button>
         </div>
     </div>
 
-    <!-- SECTION 2: Main Celebratory Screen -->
-    <div id="main-screen" class="hidden">
-        <!-- Floating Interactive Music Control -->
-        <div class="floating-controls">
-            <button id="music-toggle" class="control-btn" title="Toggle Music" aria-label="Toggle Music">
-                <div class="music-visualizer">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-                <svg class="music-icon" viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6zm-2 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
-                </svg>
-            </button>
-            <button id="manual-confetti" class="control-btn" title="Trigger Confetti Burst" aria-label="Trigger Confetti">
-                🎉
-            </button>
-        </div>
-
-        <div class="content-wrapper">
-            <!-- Header Section -->
-            <header class="celebration-header">
-                <div class="badge">July 17th</div>
-                <h1 class="glow-text">Happy Birthday,<br><span class="highlight-gold">Sir Mashood ur Rehman</span></h1>
-                <p class="lead-text">Celebrating the wisdom, leadership, and mentorship of an exceptional senior.</p>
-            </header>
-
-            <!-- Main Layout Grid -->
-            <div class="dashboard-grid">
-                
-                <!-- Card 1: Interactive Cake and Wishes -->
-                <section class="dashboard-card cake-card">
-                    <div class="card-glow"></div>
-                    <div class="card-content">
-                        <h2 class="section-title text-center">Make a Wish</h2>
-                        <p class="section-subtitle text-center">Click on the flames to blow out the candles!</p>
-                        
-                        <!-- SVG Birthday Cake -->
-                        <div class="cake-container">
-                            <svg id="birthday-cake" viewBox="0 0 300 280" width="300" height="280">
-                                <!-- Stand/Plate -->
-                                <path d="M 40 240 L 260 240 A 10 10 0 0 1 270 250 L 270 255 A 5 5 0 0 1 265 260 L 35 260 A 5 5 0 0 1 30 255 L 30 250 A 10 10 0 0 1 40 240 Z" fill="#e0e0e0" />
-                                <path d="M 120 260 L 180 260 L 190 275 L 110 275 Z" fill="#b0b0b0" />
-                                
-                                <!-- Cake Bottom Layer -->
-                                <rect x="50" y="160" width="200" height="80" rx="10" fill="#1e293b" stroke="#D4AF37" stroke-width="2" />
-                                <!-- Frosting/Cream drip base -->
-                                <path d="M 50 185 Q 70 200 90 185 T 130 185 T 170 185 T 210 185 T 250 185 L 250 160 L 50 160 Z" fill="#D4AF37" opacity="0.9" />
-                                
-                                <!-- Cake Top Layer -->
-                                <rect x="70" y="90" width="160" height="70" rx="8" fill="#334155" stroke="#D4AF37" stroke-width="2" />
-                                <!-- Top Frosting drip -->
-                                <path d="M 70 115 Q 90 125 110 115 T 150 115 T 190 115 T 230 115 L 230 90 L 70 90 Z" fill="#FFDF00" opacity="0.9" />
-
-                                <!-- Candles Group -->
-                                <g id="candles">
-                                    <!-- Candle 1 -->
-                                    <g class="candle" data-id="1" transform="translate(90, 45)">
-                                        <rect x="0" y="0" width="10" height="45" rx="3" fill="#38bdf8" />
-                                        <line x1="5" y1="0" x2="5" y2="-8" stroke="#475569" stroke-width="2" />
-                                        <path class="flame" d="M 5 -8 Q 12 -18 5 -28 Q -2 -18 5 -8 Z" fill="#FF7F3F" />
-                                    </g>
-                                    
-                                    <!-- Candle 2 -->
-                                    <g class="candle" data-id="2" transform="translate(120, 40)">
-                                        <rect x="0" y="0" width="10" height="50" rx="3" fill="#ec4899" />
-                                        <line x1="5" y1="0" x2="5" y2="-8" stroke="#475569" stroke-width="2" />
-                                        <path class="flame" d="M 5 -8 Q 12 -18 5 -28 Q -2 -18 5 -8 Z" fill="#FF7F3F" />
-                                    </g>
-
-                                    <!-- Candle 3 (Middle) -->
-                                    <g class="candle" data-id="3" transform="translate(145, 35)">
-                                        <rect x="0" y="0" width="10" height="55" rx="3" fill="#D4AF37" />
-                                        <line x1="5" y1="0" x2="5" y2="-8" stroke="#475569" stroke-width="2" />
-                                        <path class="flame" d="M 5 -8 Q 12 -18 5 -28 Q -2 -18 5 -8 Z" fill="#FF7F3F" />
-                                    </g>
-
-                                    <!-- Candle 4 -->
-                                    <g class="candle" data-id="4" transform="translate(170, 40)">
-                                        <rect x="0" y="0" width="10" height="50" rx="3" fill="#a855f7" />
-                                        <line x1="5" y1="0" x2="5" y2="-8" stroke="#475569" stroke-width="2" />
-                                        <path class="flame" d="M 5 -8 Q 12 -18 5 -28 Q -2 -18 5 -8 Z" fill="#FF7F3F" />
-                                    </g>
-
-                                    <!-- Candle 5 -->
-                                    <g class="candle" data-id="5" transform="translate(200, 45)">
-                                        <rect x="0" y="0" width="10" height="45" rx="3" fill="#10b981" />
-                                        <line x1="5" y1="0" x2="5" y2="-8" stroke="#475569" stroke-width="2" />
-                                        <path class="flame" d="M 5 -8 Q 12 -18 5 -28 Q -2 -18 5 -8 Z" fill="#FF7F3F" />
-                                    </g>
-                                </g>
-
-                                <!-- Sparkles & Confetti from Candle blowing -->
-                                <g id="sparkle-effects"></g>
-                            </svg>
-                        </div>
-                        
-                        <!-- Celebration Success Message (Hidden Initially) -->
-                        <div id="cake-success-msg" class="celebration-msg text-center">
-                            <h3>🎂 Wish Sent Successfully!</h3>
-                            <p>May this milestone birthday bring you great success, outstanding health, and endless moments of joy. Thank you for being a guiding light!</p>
-                            <button id="reset-candles-btn" class="btn btn-sm btn-outline-gold">Light Candles Again</button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Card 2: Leadership Appreciation Board -->
-                <section class="dashboard-card appreciation-card">
-                    <div class="card-glow"></div>
-                    <div class="card-content">
-                        <h2 class="section-title">Leadership & Appreciation</h2>
-                        <p class="section-subtitle">Core traits that make Sir Mashood an exceptional leader:</p>
-                        
-                        <div class="traits-grid">
-                            <div class="trait-item" tabindex="0">
-                                <div class="trait-header">
-                                    <span class="trait-icon">🌟</span>
-                                    <h3>Inspiring Mentorship</h3>
-                                </div>
-                                <p class="trait-body">Your patience in guiding the team and helping every member grow is deeply valued. You turn complex challenges into learning milestones.</p>
-                            </div>
-                            
-                            <div class="trait-item" tabindex="0">
-                                <div class="trait-header">
-                                    <span class="trait-icon">🤝</span>
-                                    <h3>Visionary Leadership</h3>
-                                </div>
-                                <p class="trait-body">You guide projects with clear sight and unwavering support, showing us that great execution comes from collaborative trust.</p>
-                            </div>
-
-                            <div class="trait-item" tabindex="0">
-                                <div class="trait-header">
-                                    <span class="trait-icon">💡</span>
-                                    <h3>Wisdom & Patience</h3>
-                                </div>
-                                <p class="trait-body">In stressful situations, your calm demeanor and calculated actions anchor the team, showing what true maturity looks like.</p>
-                            </div>
-
-                            <div class="trait-item" tabindex="0">
-                                <div class="trait-header">
-                                    <span class="trait-icon">🎯</span>
-                                    <h3>Empowerment</h3>
-                                </div>
-                                <p class="trait-body">Instead of micromanagement, you provide autonomy, which encourages original thinking and makes us take true pride in our output.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- SECTION 3: Wishes Wall -->
-            <section class="wishes-section">
-                <h2 class="section-title text-center">Messages from the Team</h2>
-                <p class="section-subtitle text-center">Heartfelt wishes expressing our respect and gratitude</p>
-                
-                <div class="wishes-masonry">
-                    <div class="wish-sticky" style="--rotation: -2deg; --delay: 0.1s;">
-                        <span class="quote-mark">“</span>
-                        <p class="wish-text">Wishing you a very Happy Birthday, Sir! Thank you for always listening to our ideas and pointing us in the right direction. May you have a fantastic year ahead!</p>
-                        <div class="wish-author">- Development Team</div>
-                    </div>
-
-                    <div class="wish-sticky" style="--rotation: 3deg; --delay: 0.3s;">
-                        <span class="quote-mark">“</span>
-                        <p class="wish-text">Happy Birthday, Sir Mashood! Your commitment to excellence sets a high standard for all of us. Wishing you joy, health, and many more successes to come.</p>
-                        <div class="wish-author">- QA & Testing Team</div>
-                    </div>
-
-                    <div class="wish-sticky" style="--rotation: -1.5deg; --delay: 0.2s;">
-                        <span class="quote-mark">“</span>
-                        <p class="wish-text">To our exceptional mentor: Happy Birthday! Thank you for the support, trust, and leadership. We are extremely fortunate to have you steering our team.</p>
-                        <div class="wish-author">- Creative Design Group</div>
-                    </div>
-
-                    <div class="wish-sticky" style="--rotation: 2.5deg; --delay: 0.4s;">
-                        <span class="quote-mark">“</span>
-                        <p class="wish-text">May this special day bring you as much inspiration and motivation as you constantly provide to our team. Happy Birthday, Sir Mashood ur Rehman!</p>
-                        <div class="wish-author">- Product Management</div>
-                    </div>
-
-                    <div class="wish-sticky" style="--rotation: -3deg; --delay: 0.5s;">
-                        <span class="quote-mark">“</span>
-                        <p class="wish-text">Wishing you a happy and fulfilling birthday, Sir! May your wisdom continue to guide us, and may your goals for the coming year be fully achieved.</p>
-                        <div class="wish-author">- Operations Team</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Footer -->
+    <!-- SECTION 2: Minimalist Celebration Stage -->
+    <div id="celebration-screen" class="screen-overlay hidden">
+        <div class="celebration-container">
+            <div class="badge">July 17th</div>
+            <h1 class="glow-text">Happy Birthday,<br><span class="highlight-gold">Sir Mashood ur Rehman</span></h1>
+            <p class="lead-text">Wishing you a year filled with happiness, health, and inspiring leadership.</p>
+            
             <footer class="celebration-footer">
                 <p>Designed with respect & admiration by Ali Hassan & Abdul wahab | 2026</p>
             </footer>
         </div>
     </div>
 
-    <!-- Script to execute logic -->
+    <!-- JavaScript logic -->
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,35 +1,299 @@
 /* ==========================================================================
-   PARTICLE & CONFETTI ENGINE
+   TYPING INTRO SEQUENCER
    ========================================================================== */
-const confettiCanvas = document.getElementById('confetti-canvas');
-const confettiCtx = confettiCanvas.getContext('2d');
-const ambientCanvas = document.getElementById('ambient-canvas');
-const ambientCtx = ambientCanvas.getContext('2d');
+const introLines = [
+    "To our respected senior, leader, and mentor...",
+    "Sir Mashood ur Rehman...",
+    "Wishing you a very special day..."
+];
 
-let confettiParticles = [];
-let ambientParticles = [];
+let lineIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+const typingSpeed = 60;   // ms per character
+const deletingSpeed = 30; // ms per character
+const pauseDuration = 1400; // ms to display completed line
 
-// Color Palettes
+function tickTypewriter() {
+    const box = document.getElementById('typing-text');
+    if (!box) return;
+
+    const currentText = introLines[lineIndex];
+
+    if (!isDeleting) {
+        // Typing state
+        box.textContent = currentText.substring(0, charIndex + 1);
+        charIndex++;
+
+        if (charIndex === currentText.length) {
+            // Completed typing this line
+            if (lineIndex === introLines.length - 1) {
+                // If it is the last line, transition immediately
+                setTimeout(transitionToCelebration, 1800);
+            } else {
+                // Otherwise pause and delete
+                isDeleting = true;
+                setTimeout(tickTypewriter, pauseDuration);
+            }
+        } else {
+            setTimeout(tickTypewriter, typingSpeed);
+        }
+    } else {
+        // Backspacing state
+        box.textContent = currentText.substring(0, charIndex - 1);
+        charIndex--;
+
+        if (charIndex === 0) {
+            isDeleting = false;
+            lineIndex++; // move to next line
+            setTimeout(tickTypewriter, 300);
+        } else {
+            setTimeout(tickTypewriter, deletingSpeed);
+        }
+    }
+}
+
+function transitionToCelebration() {
+    const typingScreen = document.getElementById('typing-screen');
+    const celebrationScreen = document.getElementById('celebration-screen');
+    
+    // Transition overlay visibility
+    if (typingScreen) typingScreen.classList.add('hidden');
+    
+    setTimeout(() => {
+        if (celebrationScreen) {
+            celebrationScreen.classList.remove('hidden');
+            // Force redraw/reflow before setting visible opacity
+            celebrationScreen.offsetHeight;
+            celebrationScreen.classList.add('visible');
+        }
+        
+        // Trigger automated periodic confetti cannons on the celebration page
+        setInterval(triggerAutomaticConfetti, 4500);
+        triggerAutomaticConfetti(); // trigger initial burst
+    }, 500);
+}
+
+// Start typewriter on window load
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(tickTypewriter, 500);
+});
+
+
+/* ==========================================================================
+   HIGH-PERFORMANCE CANVAS ENGINE
+   ========================================================================== */
+const canvas = document.getElementById('effects-canvas');
+const ctx = canvas.getContext('2d');
+
+let stars = [];
+let balloons = [];
+let petals = [];
+let snowflakes = [];
+let confetti = [];
+
 const goldPalette = ['#bf953f', '#fcf6ba', '#b38728', '#fbf5b7', '#aa771c', '#ffdf00', '#d4af37'];
-const celebratoryColors = [...goldPalette, '#e2e8f0', '#cbd5e1', '#38bdf8', '#818cf8', '#ec4899', '#10b981'];
+const celebratoryColors = [...goldPalette, '#38bdf8', '#818cf8', '#ec4899', '#10b981', '#f43f5e'];
 
+// 1. Stars (Moving Upwards and Downwards)
+class Star {
+    constructor(w, h) {
+        this.reset(w, h, true);
+    }
+    reset(w, h, scatter = false) {
+        this.x = Math.random() * w;
+        this.y = scatter ? Math.random() * h : (Math.random() > 0.5 ? -10 : h + 10);
+        this.size = Math.random() * 1.5 + 0.3;
+        // Direction: half move up, half move down
+        this.speedY = (Math.random() * 0.4 + 0.08) * (Math.random() > 0.5 ? 1 : -1);
+        this.opacity = Math.random() * 0.7 + 0.15;
+        this.twinkleSpeed = Math.random() * 0.015 + 0.005;
+        this.twinkleDir = Math.random() > 0.5 ? 1 : -1;
+    }
+    update(w, h) {
+        this.y += this.speedY;
+        this.opacity += this.twinkleSpeed * this.twinkleDir;
+        if (this.opacity > 0.95) this.twinkleDir = -1;
+        if (this.opacity < 0.15) this.twinkleDir = 1;
+
+        if (this.y < -15 || this.y > h + 15) {
+            this.reset(w, h, false);
+        }
+    }
+    draw() {
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 2. Balloons (Rising upwards with sway)
+class Balloon {
+    constructor(w, h) {
+        this.reset(w, h, true);
+    }
+    reset(w, h, scatter = false) {
+        this.x = Math.random() * w;
+        this.y = scatter ? Math.random() * (h + 300) - 100 : h + 150;
+        this.size = Math.random() * 18 + 22; // radius
+        this.speedY = Math.random() * -1.3 - 0.5; // slow float
+        this.swaySpeed = Math.random() * 0.012 + 0.004;
+        this.swayAngle = Math.random() * Math.PI * 2;
+        this.swayAmount = Math.random() * 12 + 4;
+        this.color = goldPalette[Math.floor(Math.random() * goldPalette.length)];
+        this.stringLength = this.size * 2.2;
+        this.stringSwaySpeed = Math.random() * 0.03 + 0.015;
+    }
+    update(w, h) {
+        this.y += this.speedY;
+        this.swayAngle += this.swaySpeed;
+        this.x += Math.sin(this.swayAngle) * 0.35; // micro wobble x
+
+        if (this.y < -this.size * 3) {
+            this.reset(w, h, false);
+        }
+    }
+    draw() {
+        ctx.save();
+        const displayX = this.x + Math.sin(this.swayAngle) * this.swayAmount;
+        ctx.translate(displayX, this.y);
+
+        // 3D Metallic highlight gradient
+        const grad = ctx.createRadialGradient(-this.size/4, -this.size/4, this.size/10, 0, 0, this.size);
+        grad.addColorStop(0, '#ffffff'); // shine center
+        grad.addColorStop(0.25, this.color);
+        grad.addColorStop(1, '#020205'); // shadow edge
+        
+        ctx.globalAlpha = 0.72;
+        ctx.fillStyle = grad;
+        
+        // Render teardrop shape
+        ctx.beginPath();
+        ctx.moveTo(0, this.size);
+        ctx.bezierCurveTo(-this.size * 1.25, this.size * 0.5, -this.size * 1.25, -this.size * 0.75, 0, -this.size);
+        ctx.bezierCurveTo(this.size * 1.25, -this.size * 0.75, this.size * 1.25, this.size * 0.5, 0, this.size);
+        ctx.fill();
+
+        // Draw bottom neck tie
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.moveTo(0, this.size - 2);
+        ctx.lineTo(-this.size/7, this.size + 8);
+        ctx.lineTo(this.size/7, this.size + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw wavy string
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, this.size + 8);
+        
+        const stringWave = Math.sin(this.y * this.stringSwaySpeed) * 7;
+        ctx.bezierCurveTo(stringWave, this.size + this.stringLength/3, -stringWave, this.size + (this.stringLength*2)/3, 0, this.size + this.stringLength);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
+// 3. Flower Petals (Falling flower petals)
+class Petal {
+    constructor(w, h) {
+        this.reset(w, h, true);
+    }
+    reset(w, h, scatter = false) {
+        this.x = Math.random() * w;
+        this.y = scatter ? Math.random() * h - 40 : -20;
+        this.size = Math.random() * 8 + 5;
+        this.speedY = Math.random() * 1.1 + 0.7; // fall rate
+        this.speedX = Math.random() * 0.6 - 0.3; // side drift
+        this.angle = Math.random() * Math.PI * 2;
+        this.spinSpeed = Math.random() * 0.03 - 0.015;
+        // Pinks & golds palette
+        this.color = Math.random() > 0.45 ? 
+                     `rgba(${235 + Math.floor(Math.random()*20)}, ${170 + Math.floor(Math.random()*25)}, ${190 + Math.floor(Math.random()*25)}, 0.65)` : // pastel pink blossom
+                     `rgba(212, 175, 55, ${Math.random() * 0.3 + 0.4})`; // gold leaf
+        this.swayFreq = Math.random() * 0.025 + 0.01;
+        this.swayAngle = Math.random() * Math.PI * 2;
+    }
+    update(w, h) {
+        this.y += this.speedY;
+        this.x += this.speedX + Math.sin(this.swayAngle) * 0.28;
+        this.angle += this.spinSpeed;
+        this.swayAngle += this.swayFreq;
+
+        if (this.y > h + 20) {
+            this.reset(w, h, false);
+        }
+    }
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size / 1.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 4. Snowflake (Drifting white sparkles)
+class Snowflake {
+    constructor(w, h) {
+        this.reset(w, h, true);
+    }
+    reset(w, h, scatter = false) {
+        this.x = Math.random() * w;
+        this.y = scatter ? Math.random() * h - 20 : -10;
+        this.size = Math.random() * 1.8 + 0.6;
+        this.speedY = Math.random() * 0.6 + 0.35; // gentle fall
+        this.speedX = Math.random() * 0.3 - 0.15;
+        this.swayFreq = Math.random() * 0.02 + 0.008;
+        this.swayAngle = Math.random() * Math.PI * 2;
+        this.opacity = Math.random() * 0.45 + 0.25;
+    }
+    update(w, h) {
+        this.y += this.speedY;
+        this.x += this.speedX + Math.sin(this.swayAngle) * 0.15;
+        this.swayAngle += this.swayFreq;
+
+        if (this.y > h + 10) {
+            this.reset(w, h, false);
+        }
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 5. Confetti Particles (Fired from corner canons automatically)
 class ConfettiParticle {
     constructor(x, y, color) {
         this.x = x;
         this.y = y;
-        this.size = Math.random() * 7 + 4;
+        this.size = Math.random() * 6 + 3;
         this.color = color || celebratoryColors[Math.floor(Math.random() * celebratoryColors.length)];
-        this.speedX = Math.random() * 12 - 6;
-        this.speedY = Math.random() * -14 - 6; // Initial upward force
-        this.gravity = 0.35;
-        this.friction = 0.97;
+        this.speedX = Math.random() * 10 - 5;
+        this.speedY = Math.random() * -12 - 4; // launch upward force
+        this.gravity = 0.32;
+        this.friction = 0.98;
         this.spin = Math.random() * 360;
         this.spinSpeed = Math.random() * 8 - 4;
         this.opacity = 1;
-        this.fade = Math.random() * 0.015 + 0.008;
+        this.fade = Math.random() * 0.015 + 0.007;
         this.shape = Math.random() > 0.4 ? 'rect' : 'circle';
     }
-
     update() {
         this.speedX *= this.friction;
         this.speedY *= this.friction;
@@ -39,8 +303,7 @@ class ConfettiParticle {
         this.spin += this.spinSpeed;
         this.opacity -= this.fade;
     }
-
-    draw(ctx) {
+    draw() {
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate((this.spin * Math.PI) / 180);
@@ -48,130 +311,121 @@ class ConfettiParticle {
         ctx.fillStyle = this.color;
         ctx.beginPath();
         if (this.shape === 'rect') {
-            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+            ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
         } else {
-            ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+            ctx.arc(0, 0, this.size/2, 0, Math.PI * 2);
             ctx.fill();
         }
         ctx.restore();
     }
 }
 
-class AmbientParticle {
-    constructor(w, h) {
-        this.canvasWidth = w;
-        this.canvasHeight = h;
-        this.reset(true);
+// Corner Confetti Cannons
+function triggerAutomaticConfetti() {
+    const now = audioCtx ? audioCtx.currentTime : null;
+    
+    // Play a tiny chime sequence to sync with confetti bursts
+    if (audioCtx && musicStarted) {
+        playTone(659.25, 0.5, now);       // E5 chime
+        playTone(783.99, 0.6, now + 0.1); // G5 chime
     }
 
-    reset(scatterY = false) {
-        this.x = Math.random() * this.canvasWidth;
-        this.y = scatterY ? Math.random() * this.canvasHeight : this.canvasHeight + 10;
-        this.size = Math.random() * 2 + 0.6;
-        this.speedY = Math.random() * -0.6 - 0.2; // Slow upward float
-        this.speedX = Math.random() * 0.4 - 0.2; // Slight drift
-        this.opacity = Math.random() * 0.5 + 0.1;
-        this.pulse = Math.random() * 0.015 + 0.005;
-        this.pulseDir = Math.random() > 0.5 ? 1 : -1;
+    // Launch from bottom-left corner shooting right-up
+    for (let i = 0; i < 40; i++) {
+        const p = new ConfettiParticle(0, canvas.height);
+        p.speedX = Math.random() * 8 + 6;
+        p.speedY = Math.random() * -14 - 8;
+        confetti.push(p);
     }
-
-    update(w, h) {
-        this.canvasWidth = w;
-        this.canvasHeight = h;
-        this.x += this.speedX;
-        this.y += this.speedY;
-        
-        // Twinkling effect
-        this.opacity += this.pulse * this.pulseDir;
-        if (this.opacity > 0.7) {
-            this.pulseDir = -1;
-        } else if (this.opacity < 0.1) {
-            this.pulseDir = 1;
-        }
-
-        // Reset if offscreen
-        if (this.y < -10 || this.x < -10 || this.x > this.canvasWidth + 10) {
-            this.reset(false);
-        }
-    }
-
-    draw(ctx) {
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = '#ffdf00';
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#d4af37';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+    // Launch from bottom-right corner shooting left-up
+    for (let i = 0; i < 40; i++) {
+        const p = new ConfettiParticle(canvas.width, canvas.height);
+        p.speedX = Math.random() * -8 - 6;
+        p.speedY = Math.random() * -14 - 8;
+        confetti.push(p);
     }
 }
 
-function resizeCanvases() {
-    confettiCanvas.width = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
-    ambientCanvas.width = window.innerWidth;
-    ambientCanvas.height = window.innerHeight;
-    initAmbient();
-}
+// Canvas Initialization
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Reset star count based on dimensions
+    stars = [];
+    const starCount = Math.min(Math.floor(window.innerWidth / 12), 120);
+    for (let i = 0; i < starCount; i++) stars.push(new Star(canvas.width, canvas.height));
 
-function initAmbient() {
-    ambientParticles = [];
-    const count = Math.min(Math.floor(window.innerWidth / 18), 70);
-    for (let i = 0; i < count; i++) {
-        ambientParticles.push(new AmbientParticle(ambientCanvas.width, ambientCanvas.height));
-    }
-}
+    // Reset balloons
+    balloons = [];
+    const balloonCount = Math.min(Math.floor(window.innerWidth / 100), 10);
+    for (let i = 0; i < balloonCount; i++) balloons.push(new Balloon(canvas.width, canvas.height));
 
-// Confetti Blast creators
-function createExplosion(x, y, colorSet, count = 50) {
-    for (let i = 0; i < count; i++) {
-        const color = colorSet ? colorSet[Math.floor(Math.random() * colorSet.length)] : null;
-        confettiParticles.push(new ConfettiParticle(x, y, color));
-    }
-}
+    // Reset petals
+    petals = [];
+    const petalCount = Math.min(Math.floor(window.innerWidth / 40), 30);
+    for (let i = 0; i < petalCount; i++) petals.push(new Petal(canvas.width, canvas.height));
 
-function streamConfetti() {
-    // Blast from left
-    createExplosion(0, window.innerHeight * 0.8, goldPalette, 8);
-    // Blast from right
-    createExplosion(window.innerWidth, window.innerHeight * 0.8, goldPalette, 8);
+    // Reset snowflakes
+    snowflakes = [];
+    const snowCount = Math.min(Math.floor(window.innerWidth / 25), 45);
+    for (let i = 0; i < snowCount; i++) snowflakes.push(new Snowflake(canvas.width, canvas.height));
 }
 
 // Animation Loop
-function animate() {
-    // Clear Confetti Canvas
-    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    for (let i = confettiParticles.length - 1; i >= 0; i--) {
-        const p = confettiParticles[i];
+function animateCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Background Layer: Stars
+    stars.forEach(s => {
+        s.update(canvas.width, canvas.height);
+        s.draw();
+    });
+
+    // Draw Middle Layer: Rising Balloons
+    balloons.forEach(b => {
+        b.update(canvas.width, canvas.height);
+        b.draw();
+    });
+
+    // Draw Foreground Layer: Falling Petals and Snowflake Drifts
+    petals.forEach(p => {
+        p.update(canvas.width, canvas.height);
+        p.draw();
+    });
+
+    snowflakes.forEach(s => {
+        s.update(canvas.width, canvas.height);
+        s.draw();
+    });
+
+    // Draw Confetti Overlays
+    for (let i = confetti.length - 1; i >= 0; i--) {
+        const p = confetti[i];
         p.update();
-        p.draw(confettiCtx);
+        p.draw();
         if (p.opacity <= 0) {
-            confettiParticles.splice(i, 1);
+            confetti.splice(i, 1);
         }
     }
 
-    // Clear Ambient Canvas
-    ambientCtx.clearRect(0, 0, ambientCanvas.width, ambientCanvas.height);
-    ambientParticles.forEach(p => {
-        p.update(ambientCanvas.width, ambientCanvas.height);
-        p.draw(ambientCtx);
-    });
-
-    requestAnimationFrame(animate);
+    requestAnimationFrame(animateCanvas);
 }
 
-window.addEventListener('resize', resizeCanvases);
+// Resize listener
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+requestAnimationFrame(animateCanvas);
 
 
 /* ==========================================================================
-   WEB AUDIO API SOUND ENGINE (MUSIC BOX STYLE CHIME)
+   WEB AUDIO API SOUND ENGINE (AUTOPLAY FALLBACK SYSTEM)
    ========================================================================== */
 let audioCtx = null;
 let isMusicPlaying = false;
 let melodyTimeout = null;
 let melodyStep = 0;
+let musicStarted = false;
 
 const noteFreqs = {
     'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'Bb4': 466.16, 'B4': 493.88, 'C5': 523.25,
@@ -200,9 +454,8 @@ function playTone(freq, duration, startTime) {
     osc1.type = 'triangle';
     osc1.frequency.setValueAtTime(freq, startTime);
     
-    // Envelope for triangle base
     gain1.gain.setValueAtTime(0, startTime);
-    gain1.gain.linearRampToValueAtTime(0.18, startTime + 0.04);
+    gain1.gain.linearRampToValueAtTime(0.12, startTime + 0.04);
     gain1.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
     
     osc1.connect(gain1);
@@ -212,12 +465,11 @@ function playTone(freq, duration, startTime) {
     const osc2 = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(freq * 2, startTime); // One octave higher
+    osc2.frequency.setValueAtTime(freq * 2, startTime);
     
-    // Envelope for bell chime
     gain2.gain.setValueAtTime(0, startTime);
-    gain2.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
-    gain2.gain.exponentialRampToValueAtTime(0.001, startTime + duration * 0.5); // decays much quicker
+    gain2.gain.linearRampToValueAtTime(0.08, startTime + 0.02);
+    gain2.gain.exponentialRampToValueAtTime(0.001, startTime + duration * 0.55);
     
     osc2.connect(gain2);
     gain2.connect(audioCtx.destination);
@@ -225,7 +477,7 @@ function playTone(freq, duration, startTime) {
     osc1.start(startTime);
     osc1.stop(startTime + duration);
     osc2.start(startTime);
-    osc2.stop(startTime + duration * 0.5);
+    osc2.stop(startTime + duration * 0.55);
 }
 
 function playMelody() {
@@ -239,11 +491,9 @@ function playMelody() {
     const freq = noteFreqs[currentNote.note];
     const now = audioCtx.currentTime;
 
-    // Play synthesized bell chime
-    playTone(freq, currentNote.dur * 1.6, now);
+    playTone(freq, currentNote.dur * 1.5, now);
 
-    // Dynamic timing based on tempo
-    const stepDurationMs = currentNote.dur * 700; 
+    const stepDurationMs = currentNote.dur * 720; 
 
     melodyStep = (melodyStep + 1) % birthdayMelody.length;
     melodyTimeout = setTimeout(playMelody, stepDurationMs);
@@ -253,171 +503,24 @@ function startMusic() {
     initAudio();
     isMusicPlaying = true;
     melodyStep = 0;
-    document.getElementById('music-toggle').classList.add('playing');
     playMelody();
 }
 
-function stopMusic() {
-    isMusicPlaying = false;
-    if (melodyTimeout) {
-        clearTimeout(melodyTimeout);
-        melodyTimeout = null;
-    }
-    document.getElementById('music-toggle').classList.remove('playing');
-}
-
-// Play UI feedbacks (individual chimes)
-function playInteractionChime(higher = false) {
+// Global click-anywhere to activate audio trigger
+function tryStartMusic() {
+    if (musicStarted) return;
     initAudio();
     if (audioCtx) {
-        const now = audioCtx.currentTime;
-        const frequencies = higher ? [523.25, 659.25, 783.99] : [329.63, 392.00, 523.25]; // chord chimes
-        frequencies.forEach((freq, idx) => {
-            playTone(freq, 1.2, now + idx * 0.06);
-        });
-    }
-}
-
-
-/* ==========================================================================
-   APP TRANSITIONS & DYNAMIC INTERACTION
-   ========================================================================== */
-const introScreen = document.getElementById('intro-screen');
-const mainScreen = document.getElementById('main-screen');
-const unwrapBtn = document.getElementById('unwrap-btn');
-const envelopeWrapper = document.querySelector('.envelope-wrapper');
-
-// 1. Entrance / Envelope click transitions
-function openEnvelope() {
-    envelopeWrapper.classList.add('open');
-    unwrapBtn.style.opacity = '0';
-    unwrapBtn.style.transform = 'translateY(10px)';
-    
-    // Play transition sounds
-    setTimeout(() => {
-        playInteractionChime(false);
-    }, 450);
-
-    // Smooth page reveal after envelope completes animation
-    setTimeout(() => {
-        introScreen.classList.add('hidden');
-        mainScreen.classList.remove('hidden');
-        // Simple micro-delay to let display value apply, then fade-in opacity
-        setTimeout(() => {
-            mainScreen.classList.add('visible');
-            startMusic();
-            // Start ambient particles
-            initAmbient();
-            // Initial mini confetti burst to start main page
-            createExplosion(window.innerWidth / 2, window.innerHeight * 0.35, goldPalette, 40);
-        }, 50);
-    }, 1500);
-}
-
-unwrapBtn.addEventListener('click', openEnvelope);
-envelopeWrapper.addEventListener('click', openEnvelope);
-
-
-// 2. Music Player Controls
-const musicToggle = document.getElementById('music-toggle');
-musicToggle.addEventListener('click', () => {
-    if (isMusicPlaying) {
-        stopMusic();
-    } else {
+        musicStarted = true;
         startMusic();
-    }
-});
-
-
-// 3. Manual Confetti Cannon Button
-const manualConfettiBtn = document.getElementById('manual-confetti');
-manualConfettiBtn.addEventListener('click', (e) => {
-    // Generate a chime and random confetti blasts
-    playInteractionChime(true);
-    const randomX = Math.random() * window.innerWidth;
-    const randomY = Math.random() * (window.innerHeight * 0.5) + window.innerHeight * 0.2;
-    createExplosion(randomX, randomY, celebratoryColors, 60);
-});
-
-
-// 4. Interactive Cake Candle Blowing
-const candles = document.querySelectorAll('.candle');
-const successMsg = document.getElementById('cake-success-msg');
-const resetBtn = document.getElementById('reset-candles-btn');
-
-let blownCount = 0;
-let confettiInterval = null;
-
-candles.forEach(candle => {
-    candle.addEventListener('click', () => {
-        if (!candle.classList.contains('blown')) {
-            candle.classList.add('blown');
-            blownCount++;
-            
-            // Extract coordinate of the click to launch localized sparkles
-            const bbox = candle.getBoundingClientRect();
-            const flameX = bbox.left + bbox.width / 2;
-            const flameY = bbox.top;
-            
-            // Soft spark / smoke puff
-            createExplosion(flameX, flameY, ['#e2e8f0', '#ff7f3f', '#fcf6ba'], 12);
-            
-            // Small chime feedack
-            if (audioCtx) {
-                const toneFreq = 400 + blownCount * 100;
-                playTone(toneFreq, 0.4, audioCtx.currentTime);
-            }
-
-            // Check if all candles blown out
-            if (blownCount === candles.length) {
-                celebrateBirthdayComplete();
-            }
-        }
-    });
-});
-
-function celebrateBirthdayComplete() {
-    // Big chord chime
-    playInteractionChime(true);
-    
-    // Show wishes/success overlay
-    setTimeout(() => {
-        successMsg.classList.add('active');
-        // Center screen massive explosion
-        createExplosion(window.innerWidth / 2, window.innerHeight / 2, celebratoryColors, 150);
-        // Repeat confetti bursts
-        confettiInterval = setInterval(streamConfetti, 1000);
         
-        // Stop stream after 6 seconds to prevent lag
-        setTimeout(() => {
-            if (confettiInterval) {
-                clearInterval(confettiInterval);
-                confettiInterval = null;
-            }
-        }, 6000);
-    }, 500);
+        // Clean up action triggers
+        document.removeEventListener('click', tryStartMusic);
+        document.removeEventListener('touchstart', tryStartMusic);
+        document.removeEventListener('keydown', tryStartMusic);
+    }
 }
 
-// Reset candles button
-resetBtn.addEventListener('click', () => {
-    if (confettiInterval) {
-        clearInterval(confettiInterval);
-        confettiInterval = null;
-    }
-    
-    blownCount = 0;
-    candles.forEach(candle => {
-        candle.classList.remove('blown');
-    });
-    
-    successMsg.classList.remove('active');
-    playInteractionChime(false);
-    
-    // Micro initial burst
-    createExplosion(window.innerWidth / 2, window.innerHeight * 0.6, goldPalette, 20);
-});
-
-
-// Initialization call
-resizeCanvases();
-animate();
+document.addEventListener('click', tryStartMusic);
+document.addEventListener('touchstart', tryStartMusic);
+document.addEventListener('keydown', tryStartMusic);
