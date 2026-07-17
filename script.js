@@ -63,13 +63,12 @@ function transitionToCelebration() {
     setTimeout(() => {
         if (celebrationScreen) {
             celebrationScreen.classList.remove('hidden');
-            // Force redraw/reflow before setting visible opacity
-            celebrationScreen.offsetHeight;
+            celebrationScreen.offsetHeight; // Force reflow
             celebrationScreen.classList.add('visible');
         }
         
         // Trigger automated periodic confetti cannons on the celebration page
-        setInterval(triggerAutomaticConfetti, 4500);
+        setInterval(triggerAutomaticConfetti, 4000);
         triggerAutomaticConfetti(); // trigger initial burst
     }, 500);
 }
@@ -90,10 +89,41 @@ let stars = [];
 let balloons = [];
 let petals = [];
 let snowflakes = [];
+let followers = [];      // Floating background bubble followers
+let trailParticles = []; // Mouse cursor trail particles
 let confetti = [];
 
-const goldPalette = ['#bf953f', '#fcf6ba', '#b38728', '#fbf5b7', '#aa771c', '#ffdf00', '#d4af37'];
-const celebratoryColors = [...goldPalette, '#38bdf8', '#818cf8', '#ec4899', '#10b981', '#f43f5e'];
+// Modern neon candy colors (No gold)
+const neonPalette = ['#ff2a5f', '#00f0ff', '#a12cff', '#ff9f00', '#39ff14', '#00ffcc', '#ff00ff'];
+const celebratoryColors = [...neonPalette];
+
+// Track Mouse Movements for followers and cursor trailing
+let mouse = { x: null, y: null };
+
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    // Spawn trailing bubbles on mouse move
+    if (Math.random() > 0.3) {
+        trailParticles.push(new TrailParticle(mouse.x, mouse.y));
+    }
+});
+
+window.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+        mouse.x = e.touches[0].clientX;
+        mouse.y = e.touches[0].clientY;
+        if (Math.random() > 0.3) {
+            trailParticles.push(new TrailParticle(mouse.x, mouse.y));
+        }
+    }
+});
+
+window.addEventListener('mouseleave', () => {
+    mouse.x = null;
+    mouse.y = null;
+});
+
 
 // 1. Stars (Moving Upwards and Downwards)
 class Star {
@@ -105,15 +135,15 @@ class Star {
         this.y = scatter ? Math.random() * h : (Math.random() > 0.5 ? -10 : h + 10);
         this.size = Math.random() * 1.5 + 0.3;
         // Direction: half move up, half move down
-        this.speedY = (Math.random() * 0.4 + 0.08) * (Math.random() > 0.5 ? 1 : -1);
-        this.opacity = Math.random() * 0.7 + 0.15;
+        this.speedY = (Math.random() * 0.35 + 0.08) * (Math.random() > 0.5 ? 1 : -1);
+        this.opacity = Math.random() * 0.6 + 0.15;
         this.twinkleSpeed = Math.random() * 0.015 + 0.005;
         this.twinkleDir = Math.random() > 0.5 ? 1 : -1;
     }
     update(w, h) {
         this.y += this.speedY;
         this.opacity += this.twinkleSpeed * this.twinkleDir;
-        if (this.opacity > 0.95) this.twinkleDir = -1;
+        if (this.opacity > 0.9) this.twinkleDir = -1;
         if (this.opacity < 0.15) this.twinkleDir = 1;
 
         if (this.y < -15 || this.y > h + 15) {
@@ -130,7 +160,7 @@ class Star {
     }
 }
 
-// 2. Balloons (Rising upwards with sway)
+// 2. Balloons (Rising upwards, increased quantity, vibrant colors)
 class Balloon {
     constructor(w, h) {
         this.reset(w, h, true);
@@ -138,19 +168,19 @@ class Balloon {
     reset(w, h, scatter = false) {
         this.x = Math.random() * w;
         this.y = scatter ? Math.random() * (h + 300) - 100 : h + 150;
-        this.size = Math.random() * 18 + 22; // radius
-        this.speedY = Math.random() * -1.3 - 0.5; // slow float
-        this.swaySpeed = Math.random() * 0.012 + 0.004;
+        this.size = Math.random() * 16 + 20; // radius
+        this.speedY = Math.random() * -1.5 - 0.7; // faster float rate
+        this.swaySpeed = Math.random() * 0.014 + 0.004;
         this.swayAngle = Math.random() * Math.PI * 2;
-        this.swayAmount = Math.random() * 12 + 4;
-        this.color = goldPalette[Math.floor(Math.random() * goldPalette.length)];
-        this.stringLength = this.size * 2.2;
-        this.stringSwaySpeed = Math.random() * 0.03 + 0.015;
+        this.swayAmount = Math.random() * 15 + 5;
+        this.color = neonPalette[Math.floor(Math.random() * neonPalette.length)];
+        this.stringLength = this.size * 2.3;
+        this.stringSwaySpeed = Math.random() * 0.035 + 0.015;
     }
     update(w, h) {
         this.y += this.speedY;
         this.swayAngle += this.swaySpeed;
-        this.x += Math.sin(this.swayAngle) * 0.35; // micro wobble x
+        this.x += Math.sin(this.swayAngle) * 0.45;
 
         if (this.y < -this.size * 3) {
             this.reset(w, h, false);
@@ -161,23 +191,23 @@ class Balloon {
         const displayX = this.x + Math.sin(this.swayAngle) * this.swayAmount;
         ctx.translate(displayX, this.y);
 
-        // 3D Metallic highlight gradient
+        // Vibrant 3D neon candy gradient
         const grad = ctx.createRadialGradient(-this.size/4, -this.size/4, this.size/10, 0, 0, this.size);
-        grad.addColorStop(0, '#ffffff'); // shine center
-        grad.addColorStop(0.25, this.color);
-        grad.addColorStop(1, '#020205'); // shadow edge
+        grad.addColorStop(0, '#ffffff'); 
+        grad.addColorStop(0.3, this.color);
+        grad.addColorStop(1, '#050308'); 
         
-        ctx.globalAlpha = 0.72;
+        ctx.globalAlpha = 0.78;
         ctx.fillStyle = grad;
         
-        // Render teardrop shape
+        // Draw balloon shape
         ctx.beginPath();
         ctx.moveTo(0, this.size);
         ctx.bezierCurveTo(-this.size * 1.25, this.size * 0.5, -this.size * 1.25, -this.size * 0.75, 0, -this.size);
         ctx.bezierCurveTo(this.size * 1.25, -this.size * 0.75, this.size * 1.25, this.size * 0.5, 0, this.size);
         ctx.fill();
 
-        // Draw bottom neck tie
+        // Draw bottom knot
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.moveTo(0, this.size - 2);
@@ -186,8 +216,8 @@ class Balloon {
         ctx.closePath();
         ctx.fill();
 
-        // Draw wavy string
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        // Draw string
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, this.size + 8);
@@ -200,7 +230,7 @@ class Balloon {
     }
 }
 
-// 3. Flower Petals (Falling flower petals)
+// 3. Floating Flower Petals / Neon Blossoms
 class Petal {
     constructor(w, h) {
         this.reset(w, h, true);
@@ -209,20 +239,20 @@ class Petal {
         this.x = Math.random() * w;
         this.y = scatter ? Math.random() * h - 40 : -20;
         this.size = Math.random() * 8 + 5;
-        this.speedY = Math.random() * 1.1 + 0.7; // fall rate
-        this.speedX = Math.random() * 0.6 - 0.3; // side drift
+        this.speedY = Math.random() * 1.2 + 0.7;
+        this.speedX = Math.random() * 0.6 - 0.3;
         this.angle = Math.random() * Math.PI * 2;
         this.spinSpeed = Math.random() * 0.03 - 0.015;
-        // Pinks & golds palette
-        this.color = Math.random() > 0.45 ? 
-                     `rgba(${235 + Math.floor(Math.random()*20)}, ${170 + Math.floor(Math.random()*25)}, ${190 + Math.floor(Math.random()*25)}, 0.65)` : // pastel pink blossom
-                     `rgba(212, 175, 55, ${Math.random() * 0.3 + 0.4})`; // gold leaf
+        // Pinks & purples palette
+        this.color = Math.random() > 0.4 ? 
+                     `rgba(${235 + Math.floor(Math.random()*20)}, ${140 + Math.floor(Math.random()*40)}, ${200 + Math.floor(Math.random()*40)}, 0.65)` : 
+                     `rgba(0, 240, 255, ${Math.random() * 0.3 + 0.4})`; 
         this.swayFreq = Math.random() * 0.025 + 0.01;
         this.swayAngle = Math.random() * Math.PI * 2;
     }
     update(w, h) {
         this.y += this.speedY;
-        this.x += this.speedX + Math.sin(this.swayAngle) * 0.28;
+        this.x += this.speedX + Math.sin(this.swayAngle) * 0.3;
         this.angle += this.spinSpeed;
         this.swayAngle += this.swayFreq;
 
@@ -236,13 +266,13 @@ class Petal {
         ctx.rotate(this.angle);
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.ellipse(0, 0, this.size, this.size / 1.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, this.size, this.size / 1.7, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }
 }
 
-// 4. Snowflake (Drifting white sparkles)
+// 4. Snowflake (Glowing snow sparkles)
 class Snowflake {
     constructor(w, h) {
         this.reset(w, h, true);
@@ -250,12 +280,12 @@ class Snowflake {
     reset(w, h, scatter = false) {
         this.x = Math.random() * w;
         this.y = scatter ? Math.random() * h - 20 : -10;
-        this.size = Math.random() * 1.8 + 0.6;
-        this.speedY = Math.random() * 0.6 + 0.35; // gentle fall
+        this.size = Math.random() * 2 + 0.6;
+        this.speedY = Math.random() * 0.7 + 0.35;
         this.speedX = Math.random() * 0.3 - 0.15;
-        this.swayFreq = Math.random() * 0.02 + 0.008;
+        this.swayFreq = Math.random() * 0.025 + 0.01;
         this.swayAngle = Math.random() * Math.PI * 2;
-        this.opacity = Math.random() * 0.45 + 0.25;
+        this.opacity = Math.random() * 0.5 + 0.25;
     }
     update(w, h) {
         this.y += this.speedY;
@@ -277,7 +307,85 @@ class Snowflake {
     }
 }
 
-// 5. Confetti Particles (Fired from corner canons automatically)
+// 5. Floating Background Followers (Drifting bubble followers that bend toward the cursor)
+class Follower {
+    constructor(w, h) {
+        this.reset(w, h, true);
+    }
+    reset(w, h, scatter = false) {
+        this.x = Math.random() * w;
+        this.y = scatter ? Math.random() * h : h + 20;
+        this.size = Math.random() * 7 + 4;
+        this.speedY = Math.random() * -0.9 - 0.3; // rising slowly
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.color = neonPalette[Math.floor(Math.random() * neonPalette.length)];
+        this.opacity = Math.random() * 0.38 + 0.18;
+    }
+    update(w, h) {
+        this.y += this.speedY;
+        this.x += this.speedX;
+
+        // If mouse is active, check attraction
+        if (mouse.x !== null && mouse.y !== null) {
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 280) { // pull boundary
+                // Draw bubbles gently toward the mouse cursor
+                this.x += (dx / dist) * 0.85;
+                this.y += (dy / dist) * 0.85;
+            }
+        }
+
+        if (this.y < -20 || this.x < -20 || this.x > w + 20) {
+            this.reset(w, h, false);
+        }
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 6. Interactive Cursor Trail Particles
+class TrailParticle {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 7 + 5;
+        this.speedX = Math.random() * 2.5 - 1.25;
+        this.speedY = Math.random() * 2.5 - 1.25;
+        this.color = neonPalette[Math.floor(Math.random() * neonPalette.length)];
+        this.opacity = 1;
+        this.fade = Math.random() * 0.03 + 0.015;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.size *= 0.97; // shrink
+        this.opacity -= this.fade;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 7. Confetti Particles (Fired from corner canons automatically)
 class ConfettiParticle {
     constructor(x, y, color) {
         this.x = x;
@@ -285,7 +393,7 @@ class ConfettiParticle {
         this.size = Math.random() * 6 + 3;
         this.color = color || celebratoryColors[Math.floor(Math.random() * celebratoryColors.length)];
         this.speedX = Math.random() * 10 - 5;
-        this.speedY = Math.random() * -12 - 4; // launch upward force
+        this.speedY = Math.random() * -12 - 4;
         this.gravity = 0.32;
         this.friction = 0.98;
         this.spin = Math.random() * 360;
@@ -320,28 +428,28 @@ class ConfettiParticle {
     }
 }
 
-// Corner Confetti Cannons
+// Corner Confetti Cannons (with neon colors)
 function triggerAutomaticConfetti() {
     const now = audioCtx ? audioCtx.currentTime : null;
     
-    // Play a tiny chime sequence to sync with confetti bursts
+    // Play dual chime note sequence
     if (audioCtx && musicStarted) {
-        playTone(659.25, 0.5, now);       // E5 chime
-        playTone(783.99, 0.6, now + 0.1); // G5 chime
+        playTone(659.25, 0.4, now);       // E5
+        playTone(783.99, 0.5, now + 0.08); // G5
     }
 
-    // Launch from bottom-left corner shooting right-up
-    for (let i = 0; i < 40; i++) {
+    // Left cannon
+    for (let i = 0; i < 35; i++) {
         const p = new ConfettiParticle(0, canvas.height);
-        p.speedX = Math.random() * 8 + 6;
-        p.speedY = Math.random() * -14 - 8;
+        p.speedX = Math.random() * 7 + 6;
+        p.speedY = Math.random() * -13 - 7;
         confetti.push(p);
     }
-    // Launch from bottom-right corner shooting left-up
-    for (let i = 0; i < 40; i++) {
+    // Right cannon
+    for (let i = 0; i < 35; i++) {
         const p = new ConfettiParticle(canvas.width, canvas.height);
-        p.speedX = Math.random() * -8 - 6;
-        p.speedY = Math.random() * -14 - 8;
+        p.speedX = Math.random() * -7 - 6;
+        p.speedY = Math.random() * -13 - 7;
         confetti.push(p);
     }
 }
@@ -351,44 +459,55 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
-    // Reset star count based on dimensions
+    // Reset Stars count
     stars = [];
     const starCount = Math.min(Math.floor(window.innerWidth / 12), 120);
     for (let i = 0; i < starCount; i++) stars.push(new Star(canvas.width, canvas.height));
 
-    // Reset balloons
+    // Reset Balloons (Doubled Quantity!)
     balloons = [];
-    const balloonCount = Math.min(Math.floor(window.innerWidth / 100), 10);
+    const balloonCount = Math.min(Math.floor(window.innerWidth / 35), 32); // Max 32 balloons floating
     for (let i = 0; i < balloonCount; i++) balloons.push(new Balloon(canvas.width, canvas.height));
 
-    // Reset petals
+    // Reset Petals
     petals = [];
-    const petalCount = Math.min(Math.floor(window.innerWidth / 40), 30);
+    const petalCount = Math.min(Math.floor(window.innerWidth / 40), 25);
     for (let i = 0; i < petalCount; i++) petals.push(new Petal(canvas.width, canvas.height));
 
-    // Reset snowflakes
+    // Reset Snowflakes
     snowflakes = [];
     const snowCount = Math.min(Math.floor(window.innerWidth / 25), 45);
     for (let i = 0; i < snowCount; i++) snowflakes.push(new Snowflake(canvas.width, canvas.height));
+
+    // Reset Floating Followers
+    followers = [];
+    const followerCount = Math.min(Math.floor(window.innerWidth / 35), 25);
+    for (let i = 0; i < followerCount; i++) followers.push(new Follower(canvas.width, canvas.height));
 }
 
 // Animation Loop
 function animateCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Background Layer: Stars
+    // 1. Draw Parallax Starfields
     stars.forEach(s => {
         s.update(canvas.width, canvas.height);
         s.draw();
     });
 
-    // Draw Middle Layer: Rising Balloons
+    // 2. Draw Floating background followers (bend toward cursor)
+    followers.forEach(f => {
+        f.update(canvas.width, canvas.height);
+        f.draw();
+    });
+
+    // 3. Draw Rising Balloons
     balloons.forEach(b => {
         b.update(canvas.width, canvas.height);
         b.draw();
     });
 
-    // Draw Foreground Layer: Falling Petals and Snowflake Drifts
+    // 4. Draw Falling Petals & Snowflakes
     petals.forEach(p => {
         p.update(canvas.width, canvas.height);
         p.draw();
@@ -399,7 +518,17 @@ function animateCanvas() {
         s.draw();
     });
 
-    // Draw Confetti Overlays
+    // 5. Draw Interactive Cursor Trails
+    for (let i = trailParticles.length - 1; i >= 0; i--) {
+        const t = trailParticles[i];
+        t.update();
+        t.draw();
+        if (t.opacity <= 0 || t.size <= 0.2) {
+            trailParticles.splice(i, 1);
+        }
+    }
+
+    // 6. Draw Confetti overlays
     for (let i = confetti.length - 1; i >= 0; i--) {
         const p = confetti[i];
         p.update();
@@ -412,7 +541,7 @@ function animateCanvas() {
     requestAnimationFrame(animateCanvas);
 }
 
-// Resize listener
+// Resizing
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 requestAnimationFrame(animateCanvas);
@@ -448,7 +577,7 @@ function initAudio() {
 function playTone(freq, duration, startTime) {
     if (!audioCtx) return;
 
-    // Sub-Oscillator (Triangle base - warm, flute-like)
+    // Sub-Oscillator (Triangle base - warm flute-like)
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     osc1.type = 'triangle';
